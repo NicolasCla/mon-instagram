@@ -1,10 +1,26 @@
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <title>Mon Instagram</title>
-    </head>
-    <body>
-        <h1>Ça déploie en continu 🚀</h1>
-    </body>
+<head>
+  <meta charset="UTF-8">
+  <title>Mon Instagram</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Mon mini-Instagram</h1>
+
+  <form id="form-post">
+    <input type="text" id="auteur" placeholder="Ton nom" required>
+    <textarea id="texte" placeholder="Quoi de neuf ?" required></textarea>
+    <button type="submit">Publier</button>
+  </form>
+  <!-- ↑ Le formulaire de création de post. Les "required" empêchent
+       l'envoi si un champ est vide, directement côté navigateur. -->
+
+  <div id="fil-posts"></div>
+  <!-- ↑ Conteneur vide, qu'on va remplir dynamiquement en JavaScript
+       avec la liste des posts récupérés depuis l'API. -->
+
+  <script src="script.js"></script>
+  <!-- ↑ Charge notre script JS, qui contient toute la logique. -->
+</body>
 </html>
