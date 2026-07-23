@@ -42,6 +42,24 @@ app.post('/api/posts', (req, res) => {
 });
 // ↑ Route POST : par convention, POST sert à CRÉER/ENVOYER des données.
 
+app.post('/api/posts/:id/like', (req, res) => {
+  const { id } = req.params;
+  // ↑ req.params récupère les valeurs dans l'URL elle-même.
+  //   ":id" dans la route est un paramètre dynamique : pour l'URL
+  //   /api/posts/3/like, req.params.id vaudra "3".
+
+  db.prepare('UPDATE posts SET likes = likes + 1 WHERE id = ?').run(id);
+  // ↑ UPDATE : commande SQL qui MODIFIE une ligne existante (nouveau !).
+  //   SET likes = likes + 1 : incrémente la colonne likes de 1.
+  //   WHERE id = ? : cible uniquement la ligne dont l'id correspond
+  //   (sans WHERE, ça modifierait TOUS les posts — à ne jamais oublier).
+
+  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
+  // ↑ On relit le post à jour, pour renvoyer son nouveau nombre de likes.
+
+  res.json(post);
+});
+
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
 });

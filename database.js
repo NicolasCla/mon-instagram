@@ -10,9 +10,12 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     auteur TEXT NOT NULL,
-    texte TEXT NOT NULL
+    texte TEXT NOT NULL,
+    likes INTEGER DEFAULT 0
   )
 `);
+// ↑ Nouvelle colonne "likes", de type nombre entier, avec 0 comme
+//   valeur par défaut si elle n'est pas précisée à l'insertion.
 // ↑ Requête SQL qui crée la table "posts" si elle n'existe pas déjà.
 //   - id : identifiant unique auto-généré (clé primaire)
 //   - auteur, texte : colonnes texte, obligatoires (NOT NULL)
