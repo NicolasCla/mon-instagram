@@ -1,48 +1,47 @@
-async function chargerPosts() {
-  const reponse = await fetch('/api/posts');
-  // ↑ fetch() envoie une requête au serveur depuis le navigateur.
-  //   await : on attend la réponse avant de continuer (fetch est asynchrone).
-  const posts = await reponse.json();
-  // ↑ Convertit la réponse brute (JSON texte) en tableau JavaScript utilisable.
+const express = require('express');
+// ↑ Bibliothèque qui simplifie la création d'un serveur web.
 
-  const conteneur = document.getElementById('fil-posts');
-  conteneur.innerHTML = '';
-  // ↑ On vide le conteneur avant de le remplir, pour ne pas dupliquer
-  //   les posts à chaque appel de cette fonction.
+const db = require('./database');
+// ↑ Importe la connexion à la base de données créée dans database.js
+//   (le fichier s'exécute une fois, crée la table si besoin, puis on
+//   récupère l'objet `db` prêt à l'emploi via module.exports).
 
-  posts.forEach(post => {
-    const div = document.createElement('div');
-    div.className = 'post';
-    div.innerHTML = `<strong>${post.auteur}</strong><p>${post.texte}</p>`;
-    conteneur.appendChild(div);
-    // ↑ Pour chaque post : on crée un élément <div>, on le remplit avec
-    //   son contenu, puis on l'ajoute dans la page.
-  });
-}
-// ↑ "async function" : cette fonction peut contenir des "await"
-//   (des étapes qu'on doit attendre, comme une requête réseau).
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-document.getElementById('form-post').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  // ↑ Empêche le comportement par défaut d'un formulaire HTML, qui est
-  //   de recharger toute la page à la soumission.
+app.use(express.static('public'));
+// ↑ Sert automatiquement les fichiers du dossier public (HTML, CSS, JS).
 
-  const auteur = document.getElementById('auteur').value;
-  const texte = document.getElementById('texte').value;
-  // ↑ Récupère ce que l'utilisateur a tapé dans les champs du formulaire.
+app.use(express.json());
+// ↑ Middleware qui permet à Express de comprendre du JSON envoyé dans le
+//   corps (body) d'une requête. Sans ça, req.body serait vide dans la
+//   route POST ci-dessous.
 
-  await fetch('/api/posts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ auteur, texte })
-    // ↑ On envoie les données au serveur, converties en texte JSON.
-  });
-
-  document.getElementById('form-post').reset();
-  // ↑ Vide le formulaire après l'envoi.
-  chargerPosts();
-  // ↑ Recharge la liste, pour que le nouveau post apparaisse immédiatement.
+app.get('/api/posts', (req, res) => {
+  const posts = db.prepare('SELECT * FROM posts ORDER BY id DESC').all();
+  // ↑ SELECT *      : on lit toutes les colonnes
+  //   ORDER BY id DESC : du post le plus récent (id le plus grand) au plus ancien
+  //   .all()         : renvoie TOUTES les lignes (contrairement à .get())
+  res.json(posts);
+  // ↑ Renvoie les données au navigateur au format JSON.
 });
+// ↑ Route GET : par convention, GET sert à LIRE des données.
+//   Le préfixe /api/ signale une route qui renvoie des données, pas une page.
 
-chargerPosts();
-// ↑ Appel initial : charge les posts dès que la page se charge.
+app.post('/api/posts', (req, res) => {
+  const { auteur, texte } = req.body;
+  // ↑ Récupère les champs envoyés par le client (déstructuration d'objet).
+
+  const insererPost = db.prepare('INSERT INTO posts (auteur, texte) VALUES (?, ?)');
+  const resultat = insererPost.run(auteur, texte);
+  // ↑ Insère une nouvelle ligne dans la table posts.
+
+  res.json({ id: resultat.lastInsertRowid, auteur, texte });
+  // ↑ lastInsertRowid : l'id auto-généré pour la ligne qu'on vient de créer.
+  //   On renvoie le post créé, avec son id, au client.
+});
+// ↑ Route POST : par convention, POST sert à CRÉER/ENVOYER des données.
+
+app.listen(PORT, () => {
+  console.log(`Serveur démarré sur le port ${PORT}`);
+});
