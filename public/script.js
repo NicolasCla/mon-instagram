@@ -113,3 +113,4 @@ document.getElementById('form-post').addEventListener('submit', async (event) =>
 
 verifierConnexion();
 chargerPosts();
+// test 
