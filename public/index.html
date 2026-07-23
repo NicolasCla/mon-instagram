@@ -8,19 +8,20 @@
 <body>
   <h1>Mon mini-Instagram</h1>
 
-  <form id="form-post">
-    <input type="text" id="auteur" placeholder="Ton nom" required>
-    <textarea id="texte" placeholder="Quoi de neuf ?" required></textarea>
-    <button type="submit">Publier</button>
-  </form>
-  <!-- ↑ Le formulaire de création de post. Les "required" empêchent
-       l'envoi si un champ est vide, directement côté navigateur. -->
+  <div id="zone-auth"></div>
+  <!-- ↑ Conteneur vide qu'on va remplir dynamiquement : soit un
+       formulaire de connexion/inscription, soit "Bonjour X" + déconnexion,
+       selon l'état de connexion. -->
+
+  <form id="form-post" style="display: none;">
+  <textarea id="texte" placeholder="Quoi de neuf ?" required></textarea>
+  <button type="submit">Publier</button>
+</form>
+  <!-- ↑ display: none par défaut : le formulaire de post ne s'affiche
+       que si l'utilisateur est connecté (géré en JS). -->
 
   <div id="fil-posts"></div>
-  <!-- ↑ Conteneur vide, qu'on va remplir dynamiquement en JavaScript
-       avec la liste des posts récupérés depuis l'API. -->
 
   <script src="script.js"></script>
-  <!-- ↑ Charge notre script JS, qui contient toute la logique. -->
 </body>
 </html>
