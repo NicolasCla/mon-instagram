@@ -52,6 +52,23 @@ app.post('/api/inscription', async (req, res) => {
   }
 });
 
+const multer = require('multer');
+const path = require('path');
+
+const stockage = multer.diskStorage({
+  destination: 'public/uploads/',
+  // ↑ Dossier où les images uploadées seront physiquement enregistrées.
+  filename: (req, file, callback) => {
+    const nomUnique = Date.now() + path.extname(file.originalname);
+    // ↑ Date.now() : un nombre unique basé sur l'horodatage, pour éviter
+    //   que deux images du même nom (ex: "photo.jpg") s'écrasent l'une
+    //   l'autre. path.extname récupère l'extension d'origine (.jpg, .png...).
+    callback(null, nomUnique);
+  }
+});
+
+const upload = multer({ storage: stockage });
+
 app.post('/api/connexion', async (req, res) => {
   const { email, motDePasse } = req.body;
 
@@ -127,22 +144,29 @@ app.get('/api/posts', (req, res) => {
   //   status(500) = code HTTP standard pour "erreur côté serveur".
 });
 
-app.post('/api/posts', (req, res) => {
+app.post('/api/posts', upload.single('image'), (req, res) => {
+  // ↑ upload.single('image') : middleware multer qui intercepte la
+  //   requête, extrait le FICHIER envoyé sous le nom "image", l'enregistre
+  //   dans public/uploads/ (via la config faite plus haut), et rend ses
+  //   infos disponibles dans req.file. Le reste des champs texte du
+  //   formulaire atterrit dans req.body, comme avant.
+
   const { auteur, texte } = req.body;
+  const image = req.file ? req.file.filename : null;
+  // ↑ req.file existe seulement si une image a bien été envoyée.
+  //   Si pas d'image, on stocke null (rappel : la colonne image
+  //   n'est pas NOT NULL, donc c'est autorisé).
 
   if (!auteur || !texte || auteur.trim() === '' || texte.trim() === '') {
     return res.status(400).json({ erreur: 'Auteur et texte sont obligatoires' });
   }
-  // ↑ Validation : on vérifie que les champs existent ET ne sont pas
-  //   juste des espaces vides (.trim() enlève les espaces au début/fin).
-  //   status(400) = code HTTP standard pour "requête invalide côté client".
-  //   Sans ce contrôle, quelqu'un pourrait envoyer une requête vide
-  //   directement (sans passer par ton formulaire) et polluer la base.
 
   try {
-    const insererPost = db.prepare('INSERT INTO posts (auteur, texte) VALUES (?, ?)');
-    const resultat = insererPost.run(auteur.trim(), texte.trim());
-    res.json({ id: resultat.lastInsertRowid, auteur, texte, likes: 0 });
+    const insererPost = db.prepare(
+      'INSERT INTO posts (auteur, texte, image, user_id) VALUES (?, ?, ?, ?)'
+    );
+    const resultat = insererPost.run(auteur.trim(), texte.trim(), image, req.session.userId);
+    res.json({ id: resultat.lastInsertRowid, auteur, texte, image, likes: 0 });
   } catch (erreur) {
     console.error('Erreur lors de la création du post :', erreur);
     res.status(500).json({ erreur: 'Impossible de créer le post' });

@@ -13,12 +13,11 @@
        formulaire de connexion/inscription, soit "Bonjour X" + déconnexion,
        selon l'état de connexion. -->
 
-  <form id="form-post" style="display: none;">
+  <form id="form-post" style="display: none;" enctype="multipart/form-data">
   <textarea id="texte" placeholder="Quoi de neuf ?" required></textarea>
+  <input type="file" id="image" accept="image/*">
   <button type="submit">Publier</button>
-</form>
-  <!-- ↑ display: none par défaut : le formulaire de post ne s'affiche
-       que si l'utilisateur est connecté (géré en JS). -->
+    </form>
 
   <div id="fil-posts"></div>
 

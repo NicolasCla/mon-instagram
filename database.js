@@ -19,13 +19,13 @@ db.exec(`
     texte TEXT NOT NULL,
     likes INTEGER DEFAULT 0,
     user_id INTEGER,
+    image TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id)
   )
 `);
-// ↑ Nouvelle colonne user_id : identifie QUI a écrit ce post.
-//   FOREIGN KEY (user_id) REFERENCES users(id) : dit à SQL que cette
-//   colonne "pointe" vers l'id d'une ligne de la table users — c'est
-//   ainsi qu'on relie deux tables entre elles en SQL, plutôt que de
-//   dupliquer le nom de l'auteur partout.
+// ↑ image TEXT : stockera le NOM du fichier image (pas l'image elle-même
+//   — les images ne se stockent jamais directement dans une base SQL
+//   classique, seulement leur chemin/nom). Pas de NOT NULL : un post
+//   peut exister sans image.
 
 module.exports = db;

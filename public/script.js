@@ -75,15 +75,18 @@ async function chargerPosts() {
   conteneur.innerHTML = '';
 
   posts.forEach(post => {
-    const div = document.createElement('div');
-    div.className = 'post';
-    div.innerHTML = `
-      <strong>${post.auteur}</strong>
-      <p>${post.texte}</p>
-      <button class="btn-like" data-id="${post.id}">❤️ ${post.likes}</button>
-    `;
-    conteneur.appendChild(div);
-  });
+  const div = document.createElement('div');
+  div.className = 'post';
+  div.innerHTML = `
+    <strong>${post.auteur}</strong>
+    ${post.image ? `<img src="/uploads/${post.image}" alt="">` : ''}
+    <p>${post.texte}</p>
+    <button class="btn-like" data-id="${post.id}">❤️ ${post.likes}</button>
+  `;
+  // ↑ Condition : on n'affiche la balise <img> que si le post a une image
+  //   (post.image n'est pas null).
+  conteneur.appendChild(div);
+});
 
   document.querySelectorAll('.btn-like').forEach(bouton => {
     bouton.addEventListener('click', async () => {
@@ -97,14 +100,27 @@ async function chargerPosts() {
 document.getElementById('form-post').addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  const texte = document.getElementById('texte').value;
+  const donnees = new FormData();
+  // ↑ FormData : objet spécial du navigateur pour construire une requête
+  //   de type "multipart/form-data" — nécessaire pour envoyer un fichier.
+  //   On ne peut plus utiliser JSON.stringify ici, un fichier binaire ne
+  //   se convertit pas en texte JSON.
+
+  donnees.append('auteur', utilisateurConnecte.email);
+  donnees.append('texte', document.getElementById('texte').value);
+
+  const champImage = document.getElementById('image');
+  if (champImage.files[0]) {
+    donnees.append('image', champImage.files[0]);
+    // ↑ .files[0] : le fichier choisi par l'utilisateur dans le sélecteur.
+  }
 
   await fetch('/api/posts', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ auteur: utilisateurConnecte.email, texte })
-    // ↑ On n'a plus besoin de demander le nom : on utilise l'email de
-    //   l'utilisateur connecté, qu'on a déjà en mémoire.
+    body: donnees
+    // ↑ Pas de header 'Content-Type' ici : le navigateur le définit
+    //   automatiquement (avec la bonne "boundary") quand le body est
+    //   un FormData. Le mettre manuellement casserait l'envoi.
   });
 
   document.getElementById('form-post').reset();
